@@ -1,0 +1,6 @@
+﻿<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shop | Iyarkai Vazhalai</title><link rel="stylesheet" href="styles.css"></head><body><div id="app"></div><script src="app.js"></script><script>
+const cats=['All',...new Set(PRODUCTS.map(p=>p.cat))];
+document.getElementById('app').innerHTML=`${header()}<section class="section container"><h1>Shop Herbal Products</h1><div class="grid grid-2"><input id="q" class="input" placeholder="Search products"><select id="c">${cats.map(c=>`<option>${c}</option>`).join('')}</select></div><div id="list" class="grid grid-4" style="margin-top:14px"></div></section>${footer()}`;
+function render(){const q=document.getElementById('q').value.toLowerCase();const c=document.getElementById('c').value;document.getElementById('list').innerHTML=PRODUCTS.filter(p=>(c==='All'||p.cat===c)&&p.name.toLowerCase().includes(q)).map(productCard).join('')}
+q.oninput=render;c.onchange=render;render();updateCartBadge();
+</script></body></html>

@@ -1,0 +1,13 @@
+﻿<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Product | Iyarkai Vazhalai</title><link rel="stylesheet" href="styles.css"></head><body><div id="app"></div><script src="app.js"></script><script>
+const id=new URLSearchParams(location.search).get('id');const p=PRODUCTS.find(x=>x.id===id)||PRODUCTS[0];
+const detailPhotoMap={
+  'rose-soap':'assets/rose-soap.jpeg',
+  'multhani-meti-soap':'assets/multhani-meti-soap.jpeg',
+  'sivapu-sandhana-soap':'assets/sivapu-sandhana-soap.jpeg',
+  'mulikai-soap':'assets/mulikai-soap.jpeg'
+};
+const detailPhoto=detailPhotoMap[p.id]
+  ? `<img src="${detailPhotoMap[p.id]}" alt="${p.name}" class="product-detail-img">`
+  : `<div class="photo" style="height:320px">Add product photo</div>`;
+document.getElementById('app').innerHTML=`${header()}<section class="section container grid grid-2"><div class="card">${detailPhoto}</div><div><h1>${p.name}</h1><p>${p.cat} • ${p.weight}</p><p><b>₹${p.price}</b></p><p>Handmade herbal product inspired by traditional wellness.</p><p><button class="btn btn-primary" onclick="addToCart('${p.id}')">Add to cart</button> <a class="btn btn-outline" href="checkout.html" onclick="addToCart('${p.id}')">Buy now</a></p></div></section>${footer()}`;updateCartBadge();
+</script></body></html>
