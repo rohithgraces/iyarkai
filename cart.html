@@ -1,0 +1,60 @@
+﻿<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cart | Iyarkai Vazhalai</title><link rel="stylesheet" href="styles.css"></head><body><div id="app"></div><script src="app.js"></script><script>
+function getProductPhoto(id){
+  const photoMap={
+    'rose-soap':'assets/rose-soap.jpeg',
+    'multhani-meti-soap':'assets/multhani-meti-soap.jpeg',
+    'sivapu-sandhana-soap':'assets/sivapu-sandhana-soap.jpeg',
+    'mulikai-soap':'assets/mulikai-soap.jpeg'
+  };
+  return photoMap[id] || '';
+}
+
+function change(id,d){
+  const c=getCart();
+  const i=c.findIndex(x=>x.id===id);
+  if(i<0) return;
+  c[i].qty+=d;
+  if(c[i].qty<=0) c.splice(i,1);
+  setCart(c);
+  render();
+}
+
+function cartItemCard(item){
+  const thumb=getProductPhoto(item.id)
+    ? `<img src="${getProductPhoto(item.id)}" alt="${item.name}" class="cart-thumb">`
+    : `<div class="cart-thumb cart-thumb-placeholder">No photo</div>`;
+  return `<article class="cart-item-card">
+    ${thumb}
+    <div class="cart-item-meta">
+      <h4>${item.name}</h4>
+      <p class="small">Unit price: ₹${item.price}</p>
+      <p class="subtotal">Subtotal: ₹${item.price*item.qty}</p>
+      <div class="qty-stepper">
+        <button type="button" onclick="change('${item.id}',-1)">-</button>
+        <span>${item.qty}</span>
+        <button type="button" onclick="change('${item.id}',1)">+</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+function emptyState(){
+  return `<div class="empty-cart-state">
+    <h4>Your cart is empty</h4>
+    <p>Choose your herbal products from the Menu page and come back to complete your order.</p>
+    <a class="btn btn-primary" href="shop.html">Go to Menu</a>
+  </div>`;
+}
+
+function render(){
+  const c=getCart();
+  const t=c.reduce((a,b)=>a+b.price*b.qty,0);
+  document.getElementById('content').innerHTML=!c.length
+    ? emptyState()
+    : `<div class="cart-list">${c.map(cartItemCard).join('')}</div><div class="card" style="margin-top:12px"><h3>Total: ₹${t}</h3><a class="btn btn-primary" href="checkout.html">Proceed to Checkout</a></div>`;
+  updateCartBadge();
+}
+
+document.getElementById('app').innerHTML=`${header()}<section class="section container"><h1>Cart</h1><div id="content"></div></section>${footer()}`;
+render();
+</script></body></html>

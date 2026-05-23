@@ -1,0 +1,156 @@
+﻿<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Checkout | Iyarkai Vazhalai</title><link rel="stylesheet" href="styles.css"></head><body><div id="app"></div><script src="app.js"></script><script src="https://checkout.razorpay.com/v1/checkout.js"></script><script>
+const total=getCart().reduce((a,b)=>a+b.price*b.qty,0);
+const upiId='Rohithpirate@iob';
+const RAZORPAY_KEY_ID='rzp_live_SpRmXYIeBTvcpS';
+const upiLink=`upi://pay?pa=${encodeURIComponent(upiId)}&pn=Iyarkai%20Vazhalai&am=${total}&cu=INR&tn=Order%20Payment`;
+const qrSrc=`https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiLink)}`;
+
+document.getElementById('app').innerHTML=`${header()}
+<section class="section container grid grid-2">
+  <form class="card checkout-form" id="checkout-form">
+    <h2>Checkout</h2>
+    <label class="field-label">Full Name</label>
+    <input class="input" id="full-name" placeholder="Enter full name" required>
+    <label class="field-label">Phone Number</label>
+    <input class="input" id="phone" placeholder="Enter phone number" inputmode="numeric" maxlength="10" required>
+    <label class="field-label">Address</label>
+    <textarea class="input" id="address" rows="4" placeholder="Enter full delivery address" required></textarea>
+    <label class="field-label">Pincode</label>
+    <input class="input" id="pincode" placeholder="6-digit pincode" inputmode="numeric" maxlength="6" required>
+    <p id="pincode-msg" class="small form-msg"></p>
+
+    <div class="pay-block">
+      <h3>Payment</h3>
+      <label><input type="radio" name="pay" value="upi" checked> UPI</label><br>
+      <label><input type="radio" name="pay" value="razorpay"> Razorpay (Online)</label><br>
+      <label><input type="radio" name="pay" value="cod"> Cash on Delivery</label>
+    </div>
+
+    <div id="upi-panel" class="pay-panel">
+      <p><b>UPI ID:</b> <span id="upi-id-text">${upiId}</span></p>
+      <p><b>Pay Amount:</b> ₹${total}</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="${upiLink}">Pay with UPI App</a>
+        <button type="button" class="btn btn-outline" id="copy-upi">Copy UPI ID</button>
+        <a class="btn btn-outline" href="${qrSrc}" download="iyarkai-vazhalai-upi-qr.jpeg">Download QR</a>
+      </div>
+      <div class="qr-box">
+        <img src="${qrSrc}" alt="UPI QR Code" class="upi-qr">
+        <p class="small">If QR does not load, use UPI ID manually: ${upiId}</p>
+      </div>
+    </div>
+
+    <div id="razorpay-panel" class="pay-panel hidden">
+      <p>Razorpay online payment panel is ready.</p>
+      <button type="button" class="btn btn-primary" id="rzp-pay-btn">Pay with Razorpay</button>
+      <p class="small">For full production security, add backend order + signature verification.</p>
+    </div>
+
+    <div id="cod-panel" class="pay-panel hidden">
+      <p>Cash on Delivery selected. Pay at doorstep.</p>
+    </div>
+
+    <div class="btn-row action-row">
+      <button type="button" class="btn btn-outline" id="amount-paid-btn">Amount Paid</button>
+      <button type="submit" class="btn btn-primary">Place Order</button>
+      <button type="button" class="btn btn-outline hidden" id="print-btn">Print Receipt</button>
+    </div>
+  </form>
+
+  <div class="card">
+    <h3>Order Summary</h3>
+    <div>${getCart().map(i=>`<p>${i.name} x ${i.qty} - ₹${i.price*i.qty}</p>`).join('') || '<p>No items in cart.</p>'}</div>
+    <h3>Total: ₹${total}</h3>
+  </div>
+</section>${footer()}`;
+updateCartBadge();
+
+const pincodeInput=document.getElementById('pincode');
+const pincodeMsg=document.getElementById('pincode-msg');
+function validatePincode(){
+  const ok=/^\d{6}$/.test(pincodeInput.value.trim());
+  pincodeMsg.textContent=ok || !pincodeInput.value ? '' : 'Please enter valid 6-digit pincode.';
+  pincodeMsg.className=ok || !pincodeInput.value ? 'small form-msg' : 'small form-msg err';
+  return ok;
+}
+function validateCheckoutDetails(showMessage=true){
+  const fullName=document.getElementById('full-name').value.trim();
+  const phone=document.getElementById('phone').value.trim();
+  const address=document.getElementById('address').value.trim();
+  const pinOk=validatePincode();
+  const phoneOk=/^\d{10}$/.test(phone);
+  const allOk=fullName.length>1 && phoneOk && address.length>5 && pinOk;
+  if(!allOk && showMessage){
+    alert('Please fill valid Full Name, 10-digit Phone, Address, and 6-digit Pincode first.');
+  }
+  return allOk;
+}
+pincodeInput.addEventListener('input',()=>{pincodeInput.value=pincodeInput.value.replace(/\D/g,'').slice(0,6);validatePincode();});
+
+document.querySelectorAll('input[name="pay"]').forEach(r=>r.addEventListener('change',()=>{
+  const v=document.querySelector('input[name="pay"]:checked').value;
+  document.getElementById('upi-panel').classList.toggle('hidden',v!=='upi');
+  document.getElementById('razorpay-panel').classList.toggle('hidden',v!=='razorpay');
+  document.getElementById('cod-panel').classList.toggle('hidden',v!=='cod');
+}));
+
+document.getElementById('copy-upi').addEventListener('click',async(e)=>{
+  const btn=e.currentTarget;
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(upiId);
+    }else{
+      const temp=document.createElement('input');
+      temp.value=upiId;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      temp.remove();
+    }
+    const oldText=btn.textContent;
+    btn.textContent='Copied!';
+    setTimeout(()=>{btn.textContent=oldText;},1400);
+  }catch{
+    btn.textContent='Copy failed';
+    setTimeout(()=>{btn.textContent='Copy UPI ID';},1400);
+  }
+});
+document.getElementById('amount-paid-btn').addEventListener('click',()=>{
+  if(!validateCheckoutDetails(true)) return;
+  alert(`Marked as paid: ₹${total}`);
+  document.getElementById('print-btn').classList.remove('hidden');
+});
+document.getElementById('print-btn').addEventListener('click',()=>window.print());
+document.getElementById('rzp-pay-btn').addEventListener('click',()=>{
+  if(!window.Razorpay){ alert('Razorpay SDK not loaded. Check internet.'); return; }
+  if(total<=0){ alert('Your cart is empty.'); return; }
+  const options={
+    key: RAZORPAY_KEY_ID,
+    amount: total*100,
+    currency: 'INR',
+    name: 'Iyarkai Vazhalai',
+    description: 'Herbal Products Order',
+    image: 'assets/logo.jpg',
+    prefill: {
+      name: document.getElementById('full-name').value || '',
+      contact: document.getElementById('phone').value || '',
+    },
+    notes: { address: document.getElementById('address').value || '' },
+    handler: function (response) {
+      alert('Payment successful: ' + response.razorpay_payment_id);
+    },
+    theme: { color: '#1f5d40' }
+  };
+  const rzp = new Razorpay(options);
+  rzp.on('payment.failed', function (response) {
+    alert('Payment failed: ' + response.error.description);
+  });
+  rzp.open();
+});
+document.getElementById('checkout-form').addEventListener('submit',(e)=>{
+  e.preventDefault();
+  if(!validateCheckoutDetails(true)) return;
+  alert('Order placed successfully');
+});
+</script></body></html>
+
