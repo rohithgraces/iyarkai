@@ -1,5 +1,0 @@
-﻿<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cart | Iyarkai Vazhalai</title><link rel="stylesheet" href="styles.css"></head><body><div id="app"></div><script src="app.js"></script><script>
-function change(id,d){const c=getCart();const i=c.findIndex(x=>x.id===id);if(i<0)return;c[i].qty+=d;if(c[i].qty<=0)c.splice(i,1);setCart(c);render()}
-function render(){const c=getCart();const t=c.reduce((a,b)=>a+b.price*b.qty,0);document.getElementById('content').innerHTML=!c.length?'<p>Your cart is empty.</p>':c.map(i=>`<div class="card"><b>${i.name}</b><p class="small">₹${i.price} • ${i.weight}</p><p><button class="btn" onclick="change('${i.id}',-1)">-</button> ${i.qty} <button class="btn" onclick="change('${i.id}',1)">+</button></p></div>`).join('')+`<div class="card"><h3>Total: ₹${t}</h3><a class="btn btn-primary" href="checkout.html">Proceed to Checkout</a></div>`;updateCartBadge()}
-document.getElementById('app').innerHTML=`${header()}<section class="section container"><h1>Cart</h1><div id="content"></div></section>${footer()}`;render();
-</script></body></html>
